@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: "export",
+  basePath: "/nua", // For GitHub Pages project site
+  images: {
+    unoptimized: true, // Required for static export
+  },
   reactCompiler: true,
 };
 
