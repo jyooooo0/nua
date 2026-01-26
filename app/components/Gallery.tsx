@@ -2,11 +2,14 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import interior1 from "../assets/interior_1.png";
+import exterior from "../assets/exterior.png";
+import interior2 from "../assets/interior_2.png";
 
 const images = [
-    { src: "/images/interior_1.png", alt: "Reception", aspect: "aspect-[4/3]" },
-    { src: "/images/exterior.png", alt: "Exterior", aspect: "aspect-[3/4]" },
-    { src: "/images/interior_2.png", alt: "Styling Area", aspect: "aspect-[4/3]" },
+    { src: interior1, alt: "Reception", aspect: "aspect-[4/3]" },
+    { src: exterior, alt: "Exterior", aspect: "aspect-[3/4]" },
+    { src: interior2, alt: "Styling Area", aspect: "aspect-[4/3]" },
 ];
 
 export default function Gallery() {
@@ -27,6 +30,7 @@ export default function Gallery() {
                         alt={images[0].alt}
                         fill
                         className="object-cover rounded-sm grayscale-[20%] hover:grayscale-0 transition-all duration-700"
+                        placeholder="blur"
                     />
                 </motion.div>
 
@@ -49,6 +53,7 @@ export default function Gallery() {
                         alt={images[1].alt}
                         fill
                         className="object-cover rounded-sm grayscale-[20%] hover:grayscale-0 transition-all duration-700"
+                        placeholder="blur"
                     />
                 </motion.div>
 
@@ -66,6 +71,7 @@ export default function Gallery() {
                         alt={images[2].alt}
                         fill
                         className="object-cover rounded-sm grayscale-[20%] hover:grayscale-0 transition-all duration-700"
+                        placeholder="blur"
                     />
                 </motion.div>
 

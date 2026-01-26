@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import textureImg from "../assets/texture.png";
+import logoImg from "../assets/logo.png";
 
 export default function Hero() {
     return (
@@ -9,11 +11,12 @@ export default function Hero() {
             {/* Background Texture (Optional, subtle) */}
             <div className="absolute inset-0 opacity-20 pointer-events-none">
                 <Image
-                    src="/images/texture.png"
+                    src={textureImg}
                     alt="texture"
                     fill
                     className="object-cover"
                     priority
+                    placeholder="blur"
                 />
             </div>
 
@@ -25,12 +28,12 @@ export default function Hero() {
                 className="z-10 flex flex-col items-center"
             >
                 <div className="relative w-48 h-24 md:w-64 md:h-32">
-                    {/* Assuming logo.png is the text logo 'nua' */}
                     <Image
-                        src="/images/logo.png"
+                        src={logoImg}
                         alt="nua"
                         fill
-                        className="object-contain" // Use contain to show full logo
+                        className="object-contain"
+                        priority
                     />
                 </div>
 
