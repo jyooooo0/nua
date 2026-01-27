@@ -5,11 +5,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { format, isSameDay, isSameWeek, parseISO } from "date-fns";
 import { ja } from "date-fns/locale";
 import AdminCalendar from "../components/admin/AdminCalendar";
+import AuthGuard from "../components/AuthGuard";
+import CustomerAutocomplete from "../components/CustomerAutocomplete";
+import Link from "next/link";
+import { Customer } from "@/app/lib/types";
 
 // Mock Data
 type Reservation = {
     id: number;
     name: string;
+    customer_id?: string; // Supabase customer ID
     menu: string;
     date: string;
     time: string;
@@ -30,6 +35,7 @@ export default function AdminDashboard() {
     const [passcode, setPasscode] = useState("");
     const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
     const [showManualModal, setShowManualModal] = useState(false);
+    const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
     // Calendar & View State
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -48,10 +54,15 @@ export default function AdminDashboard() {
     // Manual Add Mock
     const handleManualAdd = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!selectedCustomer) {
+            alert("お客様を選択または新規登録してください");
+            return;
+        }
         const formData = new FormData(e.target as HTMLFormElement);
         const newRes: Reservation = {
             id: reservations.length + 1,
-            name: formData.get("name") as string,
+            name: selectedCustomer.name,
+            customer_id: selectedCustomer.id,
             menu: formData.get("menu") as string,
             date: formData.get("date") as string,
             time: formData.get("time") as string,
@@ -60,6 +71,7 @@ export default function AdminDashboard() {
         };
         setReservations([newRes, ...reservations]);
         setShowManualModal(false);
+        setSelectedCustomer(null);
     };
 
     // Filtering Logic
@@ -108,165 +120,207 @@ export default function AdminDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-[#ebe6df] pb-24">
-            {/* Header */}
-            <header className="bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-wood/10 px-6 py-4 flex justify-between items-center">
-                <h1 className="font-serif text-xl text-wood">nua 管理画面</h1>
-                <button onClick={() => setIsLoggedIn(false)} className="text-xs text-wood/60 hover:text-wood">ログアウト</button>
-            </header>
-
-            <main className="max-w-4xl mx-auto px-6 py-8 space-y-8">
-
-                {/* Calendar Section */}
-                <AdminCalendar
-                    reservations={reservations}
-                    selectedDate={selectedDate}
-                    onSelectDate={(date) => {
-                        setSelectedDate(date);
-                        // If in month view, maybe stay? Or switch to Day?
-                        // User: "Touch to check that day"
-                        // I'll keep mode but update selected date.
-                    }}
-                    viewMode={viewMode}
-                    onChangeViewMode={(mode) => {
-                        setViewMode(mode);
-                        if (mode === 'day') setSelectedDate(new Date()); // Reset to today if clicking 'Today'
-                    }}
-                />
-
-                {/* Stats & Actions */}
-                <div className="flex flex-col md:flex-row justify-between items-end gap-4">
-                    <div>
-                        <h2 className="text-wood font-medium text-lg">{statsDateDisplay} の予約</h2>
-                        <p className="text-xs text-wood/60">{filteredReservations.length} 件の予約</p>
+        <AuthGuard>
+            <div className="min-h-screen bg-[#ebe6df] pb-24">
+                {/* Header */}
+                <header className="bg-white/80 backdrop-blur-md sticky top-0 z-10 border-b border-wood/10 px-6 py-4 flex justify-between items-center">
+                    <div className="flex items-center gap-6">
+                        <h1 className="font-serif text-xl text-wood">nua 管理画面</h1>
+                        <nav className="hidden md:flex gap-4 text-sm font-medium">
+                            <span className="text-wood border-b-2 border-wood cursor-default">予約表</span>
+                            <Link href="/admin/customers" className="text-wood/60 hover:text-wood transition-colors">顧客管理</Link>
+                        </nav>
                     </div>
-                    <button
-                        onClick={() => setShowManualModal(true)}
-                        className="bg-wood text-white px-6 py-3 rounded-sm shadow-sm hover:bg-wood/90 transition-colors flex items-center gap-2 text-sm"
-                    >
-                        <span>+</span> 予約の手動追加
-                    </button>
-                </div>
-
-                {/* Reservation List */}
-                <div className="bg-white rounded-sm shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto">
-                        {filteredReservations.length === 0 ? (
-                            <div className="p-8 text-center text-gray-400 text-sm">
-                                この日の予約はありません。
-                            </div>
-                        ) : (
-                            <table className="w-full text-sm text-left">
-                                <thead className="bg-[#f9f8f6] text-wood/60 uppercase text-xs">
-                                    <tr>
-                                        <th className="px-6 py-3">ステータス</th>
-                                        <th className="px-6 py-3">時間</th>
-                                        <th className="px-6 py-3">氏名</th>
-                                        <th className="px-6 py-3">メニュー</th>
-                                        <th className="px-6 py-3">経路</th>
-                                        <th className="px-6 py-3">操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-wood/10">
-                                    {filteredReservations.map((res) => (
-                                        <tr key={res.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded-xs text-xs ${res.status === 'Confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                                                    }`}>
-                                                    {res.status === 'Confirmed' ? '確定' : '未確定'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 font-bold text-wood">
-                                                {res.time}
-                                            </td>
-                                            <td className="px-6 py-4 font-medium">{res.name}</td>
-                                            <td className="px-6 py-4 text-gray-600">{res.menu}</td>
-                                            <td className="px-6 py-4">
-                                                <span className="text-xs border border-gray-200 px-2 py-0.5 rounded-full text-gray-500">
-                                                    {res.source}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                {res.status === "Pending" && (
-                                                    <div className="flex gap-2">
-                                                        <button className="text-green-600 hover:text-green-800 text-xs border border-green-200 px-2 py-1 rounded-sm">承認</button>
-                                                        <button className="text-red-600 hover:text-red-800 text-xs border border-red-200 px-2 py-1 rounded-sm">拒否</button>
-                                                    </div>
-                                                )}
-                                                {res.status === "Confirmed" && (
-                                                    <button className="text-gray-400 hover:text-gray-600 text-xs underline">詳細</button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
+                    <div className="flex items-center gap-4">
+                        <Link href="/admin/customers" className="md:hidden text-sm text-wood hover:underline">顧客管理</Link>
+                        <button onClick={() => setIsLoggedIn(false)} className="text-xs text-wood/60 hover:text-wood">ログアウト</button>
                     </div>
-                </div>
-            </main>
+                </header>
 
-            {/* Manual Entry Modal */}
-            <AnimatePresence>
-                {showManualModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white w-full max-w-md rounded-sm shadow-lg overflow-hidden"
+                <main className="max-w-4xl mx-auto px-6 py-8 space-y-8">
+
+                    {/* Calendar Section */}
+                    <AdminCalendar
+                        reservations={reservations}
+                        selectedDate={selectedDate}
+                        onSelectDate={(date) => {
+                            setSelectedDate(date);
+                            // If in month view, maybe stay? Or switch to Day?
+                            // User: "Touch to check that day"
+                            // I'll keep mode but update selected date.
+                        }}
+                        viewMode={viewMode}
+                        onChangeViewMode={(mode) => {
+                            setViewMode(mode);
+                            if (mode === 'day') setSelectedDate(new Date()); // Reset to today if clicking 'Today'
+                        }}
+                    />
+
+                    {/* Stats & Actions */}
+                    <div className="flex flex-col md:flex-row justify-between items-end gap-4">
+                        <div>
+                            <h2 className="text-wood font-medium text-lg">{statsDateDisplay} の予約</h2>
+                            <p className="text-xs text-wood/60">{filteredReservations.length} 件の予約</p>
+                        </div>
+                        <button
+                            onClick={() => setShowManualModal(true)}
+                            className="bg-wood text-white px-6 py-3 rounded-sm shadow-sm hover:bg-wood/90 transition-colors flex items-center gap-2 text-sm"
                         >
-                            <div className="px-6 py-4 border-b border-wood/10 flex justify-between items-center">
-                                <h3 className="font-serif text-lg text-wood">予約の追加</h3>
-                                <button onClick={() => setShowManualModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
-                            </div>
-                            <form onSubmit={handleManualAdd} className="p-6 space-y-4">
-                                <div>
-                                    <label className="block text-xs uppercase text-gray-500 mb-1">経路</label>
-                                    <div className="flex gap-4">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input type="radio" name="source" value="Phone" defaultChecked className="accent-wood" />
-                                            <span className="text-sm">お電話</span>
-                                        </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input type="radio" name="source" value="Instagram" className="accent-wood" />
-                                            <span className="text-sm">Instagram DM</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs uppercase text-gray-500 mb-1">お客様名</label>
-                                    <input name="name" required className="w-full border border-gray-200 p-2 rounded-sm outline-none focus:border-wood" placeholder="山田 太郎" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs uppercase text-gray-500 mb-1">日付</label>
-                                        <input type="date" name="date" required className="w-full border border-gray-200 p-2 rounded-sm outline-none focus:border-wood" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs uppercase text-gray-500 mb-1">時間</label>
-                                        <input type="time" name="time" required className="w-full border border-gray-200 p-2 rounded-sm outline-none focus:border-wood" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs uppercase text-gray-500 mb-1">メニュー</label>
-                                    <select name="menu" className="w-full border border-gray-200 p-2 rounded-sm outline-none focus:border-wood">
-                                        <option value="Cut">カット</option>
-                                        <option value="Cut & Color">カット & カラー</option>
-                                        <option value="Perm">パーマ</option>
-                                        <option value="Head Spa">ヘッドスパ</option>
-                                        <option value="Other">その他</option>
-                                    </select>
-                                </div>
-                                <div className="pt-4 flex gap-3">
-                                    <button type="button" onClick={() => setShowManualModal(false)} className="flex-1 py-2 border border-gray-200 text-gray-600 rounded-sm hover:bg-gray-50">キャンセル</button>
-                                    <button type="submit" className="flex-1 py-2 bg-wood text-white rounded-sm hover:bg-wood/90">追加する</button>
-                                </div>
-                            </form>
-                        </motion.div>
+                            <span>+</span> 予約の手動追加
+                        </button>
                     </div>
-                )}
-            </AnimatePresence>
-        </div>
+
+                    {/* Reservation List */}
+                    <div className="bg-white rounded-sm shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                            {filteredReservations.length === 0 ? (
+                                <div className="p-8 text-center text-gray-400 text-sm">
+                                    この日の予約はありません。
+                                </div>
+                            ) : (
+                                <table className="w-full text-sm text-left">
+                                    <thead className="bg-[#f9f8f6] text-wood/60 uppercase text-xs">
+                                        <tr>
+                                            <th className="px-6 py-3">ステータス</th>
+                                            <th className="px-6 py-3">時間</th>
+                                            <th className="px-6 py-3">氏名</th>
+                                            <th className="px-6 py-3">メニュー</th>
+                                            <th className="px-6 py-3">経路</th>
+                                            <th className="px-6 py-3">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-wood/10">
+                                        {filteredReservations.map((res) => (
+                                            <tr key={res.id} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-2 py-1 rounded-xs text-xs ${res.status === 'Confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                                                        }`}>
+                                                        {res.status === 'Confirmed' ? '確定' : '未確定'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 font-bold text-wood">
+                                                    {res.time}
+                                                </td>
+                                                <td className="px-6 py-4 font-medium">{res.name}</td>
+                                                <td className="px-6 py-4 text-gray-600">{res.menu}</td>
+                                                <td className="px-6 py-4">
+                                                    <span className="text-xs border border-gray-200 px-2 py-0.5 rounded-full text-gray-500">
+                                                        {res.source}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    {res.status === "Pending" && (
+                                                        <div className="flex gap-2">
+                                                            <button className="text-green-600 hover:text-green-800 text-xs border border-green-200 px-2 py-1 rounded-sm">承認</button>
+                                                            <button className="text-red-600 hover:text-red-800 text-xs border border-red-200 px-2 py-1 rounded-sm">拒否</button>
+                                                        </div>
+                                                    )}
+                                                    {res.status === "Confirmed" && (
+                                                        <button className="text-gray-400 hover:text-gray-600 text-xs underline">詳細</button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                </main>
+
+                {/* Manual Entry Modal */}
+                <AnimatePresence>
+                    {showManualModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="bg-white w-full max-w-md rounded-sm shadow-lg overflow-hidden"
+                            >
+                                <div className="px-6 py-4 border-b border-wood/10 flex justify-between items-center">
+                                    <h3 className="font-serif text-lg text-wood">予約の追加</h3>
+                                    <button onClick={() => setShowManualModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
+                                </div>
+                                <form onSubmit={handleManualAdd} className="p-6 space-y-4">
+                                    <div>
+                                        <label className="block text-xs uppercase text-gray-500 mb-1">経路</label>
+                                        <div className="flex gap-4">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input type="radio" name="source" value="Phone" defaultChecked className="accent-wood" />
+                                                <span className="text-sm">お電話</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input type="radio" name="source" value="Instagram" className="accent-wood" />
+                                                <span className="text-sm">Instagram DM</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs uppercase text-gray-500 mb-1">お客様名</label>
+                                        <CustomerAutocomplete
+                                            onSelect={(customer) => setSelectedCustomer(customer)}
+                                            placeholder="名前または電話番号で検索・新規登録"
+                                        />
+                                        {selectedCustomer && (
+                                            <p className="text-xs text-green-600 mt-1">
+                                                ✓ {selectedCustomer.name} (ID: {selectedCustomer.id.slice(-4).toUpperCase()})
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs uppercase text-gray-500 mb-1">日付</label>
+                                            <input type="date" name="date" required className="w-full border border-gray-200 p-2 rounded-sm outline-none focus:border-wood" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase text-gray-500 mb-1">時間</label>
+                                            <select name="time" required className="w-full border border-gray-200 p-2 rounded-sm outline-none focus:border-wood">
+                                                <option value="">選択してください</option>
+                                                <option value="09:00">09:00</option>
+                                                <option value="09:30">09:30</option>
+                                                <option value="10:00">10:00</option>
+                                                <option value="10:30">10:30</option>
+                                                <option value="11:00">11:00</option>
+                                                <option value="11:30">11:30</option>
+                                                <option value="12:00">12:00</option>
+                                                <option value="12:30">12:30</option>
+                                                <option value="13:00">13:00</option>
+                                                <option value="13:30">13:30</option>
+                                                <option value="14:00">14:00</option>
+                                                <option value="14:30">14:30</option>
+                                                <option value="15:00">15:00</option>
+                                                <option value="15:30">15:30</option>
+                                                <option value="16:00">16:00</option>
+                                                <option value="16:30">16:30</option>
+                                                <option value="17:00">17:00</option>
+                                                <option value="17:30">17:30</option>
+                                                <option value="18:00">18:00</option>
+                                                <option value="18:30">18:30</option>
+                                                <option value="19:00">19:00</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs uppercase text-gray-500 mb-1">メニュー</label>
+                                        <select name="menu" className="w-full border border-gray-200 p-2 rounded-sm outline-none focus:border-wood">
+                                            <option value="Cut">カット</option>
+                                            <option value="Cut & Color">カット & カラー</option>
+                                            <option value="Perm">パーマ</option>
+                                            <option value="Head Spa">ヘッドスパ</option>
+                                            <option value="Other">その他</option>
+                                        </select>
+                                    </div>
+                                    <div className="pt-4 flex gap-3">
+                                        <button type="button" onClick={() => setShowManualModal(false)} className="flex-1 py-2 border border-gray-200 text-gray-600 rounded-sm hover:bg-gray-50">キャンセル</button>
+                                        <button type="submit" className="flex-1 py-2 bg-wood text-white rounded-sm hover:bg-wood/90">追加する</button>
+                                    </div>
+                                </form>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+            </div>
+        </AuthGuard>
     );
 }
