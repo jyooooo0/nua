@@ -43,10 +43,10 @@ export default function Price() {
                 </div>
 
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: 0.8, duration: 1 }}
+                    transition={{ duration: 0.8 }}
                     className="mt-16 space-y-12"
                 >
                     <div className="text-xs text-wood/50 leading-loose">
