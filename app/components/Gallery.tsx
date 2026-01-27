@@ -6,10 +6,13 @@ import interior1 from "../assets/interior_1.png";
 import exterior from "../assets/exterior.png";
 import interior2 from "../assets/interior_2.png";
 
+import interior3 from "../assets/interior_3.png";
+
 const images = [
     { src: interior1, alt: "Reception", aspect: "aspect-[4/3]" },
     { src: exterior, alt: "Exterior", aspect: "aspect-[3/4]" },
     { src: interior2, alt: "Styling Area", aspect: "aspect-[4/3]" },
+    { src: interior3, alt: "Atmosphere", aspect: "aspect-[4/3]" },
 ];
 
 export default function Gallery() {

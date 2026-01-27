@@ -34,8 +34,8 @@ export default function Profile() {
                 >
                     <h3 className="text-xl font-serif italic text-wood-light mb-2 tracking-widest">Owner Stylist</h3>
                     <h2 className="text-2xl md:text-3xl font-light mb-8 tracking-wider">
-                        Name Placeholder<br />
-                        <span className="text-base md:text-lg opacity-60 mt-2 block font-serif">Takashi Tanaka</span>
+                        Takahashi Aiko<br />
+                        <span className="text-base md:text-lg opacity-60 mt-2 block font-serif">高橋 あいこ</span>
                     </h2>
 
                     <div className="space-y-6 text-sm md:text-base leading-loose font-light opacity-80">
@@ -51,15 +51,6 @@ export default function Profile() {
                             一人ひとりのお客様のライフスタイルに寄り添い、<br />
                             その人らしさを引き出すスタイルをご提案いたします。
                         </p>
-                    </div>
-
-                    <div className="mt-12 pt-8 border-t border-[#e8e6e3]/10 w-full">
-                        <p className="text-xs tracking-widest opacity-50 uppercase">Career</p>
-                        <ul className="mt-4 space-y-2 text-sm opacity-70">
-                            <li>2010 - 都内某サロン勤務</li>
-                            <li>2015 - 渡英・ロンドンにて研修</li>
-                            <li>2020 - nua オープン</li>
-                        </ul>
                     </div>
                 </motion.div>
 
