@@ -46,15 +46,6 @@ export default function Info() {
                         <a href="tel:07084934839" className="text-sm hover:text-wood transition-colors">070-8493-4839</a>
                     </div>
 
-                    {/* Payment */}
-                    <div className="space-y-1">
-                        <p className="text-xs text-wood uppercase tracking-widest">Payment</p>
-                        <p className="text-sm leading-relaxed text-foreground/80">
-                            VISA / Mastercard / JCB / AMEX / Diners<br />
-                            Suica / PASMO / iD / QUICPay / PayPay etc.
-                        </p>
-                    </div>
-
                     {/* Instagram */}
                     <div className="pt-4">
                         <a

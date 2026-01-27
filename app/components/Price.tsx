@@ -42,16 +42,26 @@ export default function Price() {
                     ))}
                 </div>
 
-                <motion.p
+                <motion.div
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.8, duration: 1 }}
-                    className="mt-16 text-xs text-wood/50 leading-loose"
+                    className="mt-16 space-y-12"
                 >
-                    ※金額は全て税込表示となります。<br />
-                    詳細はカウンセリング時にご案内いたします。
-                </motion.p>
+                    <div className="text-xs text-wood/50 leading-loose">
+                        <p>※金額は全て税込表示となります。</p>
+                        <p>詳細はカウンセリング時にご案内いたします。</p>
+                    </div>
+
+                    <div className="pt-8 border-t border-wood/10">
+                        <p className="text-xs text-wood uppercase tracking-widest mb-4">Payment Methods</p>
+                        <p className="text-sm text-wood/80 leading-relaxed font-serif tracking-wide">
+                            VISA / Mastercard / JCB / AMEX / Diners<br />
+                            Suica / PASMO / iD / QUICPay / PayPay etc.
+                        </p>
+                    </div>
+                </motion.div>
             </div>
         </section>
     );
