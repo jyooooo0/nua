@@ -1,22 +1,52 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
-const timeSlots = [
-    { time: "10:00", status: "circle" },
-    { time: "11:00", status: "triangle" },
-    { time: "12:00", status: "cross" },
-    { time: "13:00", status: "circle" },
-    { time: "14:00", status: "circle" },
-    { time: "15:00", status: "cross" },
-    { time: "16:00", status: "triangle" },
-    { time: "17:00", status: "circle" },
-    { time: "18:00", status: "circle" },
-];
+// Mock data generator based on date
+// normally this would fetch from an API
+const getMockSlots = (dateString: string) => {
+    // Simple hash to make it look deterministic but random per date
+    const hash = dateString.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+    const slots = [
+        "10:00", "11:00", "12:00", "13:00", "14:00",
+        "15:00", "16:00", "17:00", "18:00"
+    ];
+
+    return slots.map((time, index) => {
+        // Mock logic: different days have different availability
+        const randomVal = (hash + index) % 10;
+        let status = "circle"; // default open
+        if (randomVal > 7) status = "cross"; // 20% full
+        else if (randomVal > 5) status = "triangle"; // 20% limited
+
+        return { time, status };
+    });
+};
 
 export default function Reservation() {
+    const [selectedDate, setSelectedDate] = useState<string>("");
     const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [currentSlots, setCurrentSlots] = useState<{ time: string, status: string }[]>([]);
+
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const date = e.target.value;
+        setSelectedDate(date);
+        setSelectedSlot(null);
+
+        if (date) {
+            setIsLoading(true);
+            // Simulate API Network delay
+            setTimeout(() => {
+                setCurrentSlots(getMockSlots(date));
+                setIsLoading(false);
+            }, 600);
+        } else {
+            setCurrentSlots([]);
+        }
+    };
 
     return (
         <section className="w-full py-32 px-6 bg-[#f2efe9] text-wood">
@@ -77,44 +107,79 @@ export default function Reservation() {
                             <label className="text-xs uppercase tracking-widest opacity-70">Date</label>
                             <input
                                 type="date"
-                                className="w-full bg-transparent border-b border-wood/30 py-2 focus:border-wood outline-none transition-colors uppercase text-wood/80"
+                                value={selectedDate}
+                                onChange={handleDateChange}
+                                className="w-full bg-transparent border-b border-wood/30 py-2 focus:border-wood outline-none transition-colors uppercase text-wood/80 cursor-pointer"
                             />
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-2 min-h-[120px]">
                             <label className="text-xs uppercase tracking-widest opacity-70">Time & Availability</label>
-                            <div className="grid grid-cols-3 md:grid-cols-5 gap-3 pt-2">
-                                {timeSlots.map((slot) => {
-                                    const isSelected = selectedSlot === slot.time;
-                                    const isFull = slot.status === "cross";
 
-                                    return (
-                                        <button
-                                            key={slot.time}
-                                            onClick={() => !isFull && setSelectedSlot(slot.time)}
-                                            disabled={isFull}
-                                            className={`
-                                                flex flex-col items-center justify-center py-3 rounded-sm border transition-all duration-300
-                                                ${isSelected
-                                                    ? 'bg-wood text-white border-wood'
-                                                    : isFull
-                                                        ? 'bg-gray-100 text-gray-400 border-transparent cursor-not-allowed'
-                                                        : 'bg-white/40 border-wood/10 hover:border-wood/40 hover:bg-white/80 text-wood'}
-                                            `}
-                                        >
-                                            <span className="text-sm font-serif">{slot.time}</span>
-                                            <span className="text-xs mt-1">
-                                                {slot.status === "circle" ? "◎" : slot.status === "triangle" ? "△" : "×"}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                            <div className="flex justify-end gap-4 text-xs opacity-60 pt-1">
-                                <span>◎ : Available</span>
-                                <span>△ : Limited</span>
-                                <span>× : Full</span>
-                            </div>
+                            <AnimatePresence mode="wait">
+                                {isLoading ? (
+                                    <motion.div
+                                        key="loading"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="py-8 flex justify-center text-wood/50"
+                                    >
+                                        <span className="text-xs tracking-widest animate-pulse">Checking Availability...</span>
+                                    </motion.div>
+                                ) : selectedDate ? (
+                                    <motion.div
+                                        key="slots"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                    >
+                                        <div className="grid grid-cols-3 md:grid-cols-5 gap-3 pt-2">
+                                            {currentSlots.map((slot) => {
+                                                const isSelected = selectedSlot === slot.time;
+                                                const isFull = slot.status === "cross";
+
+                                                return (
+                                                    <button
+                                                        key={slot.time}
+                                                        type="button"
+                                                        onClick={() => !isFull && setSelectedSlot(slot.time)}
+                                                        disabled={isFull}
+                                                        className={`
+                                                            flex flex-col items-center justify-center py-3 rounded-sm border transition-all duration-300
+                                                            ${isSelected
+                                                                ? 'bg-wood text-white border-wood'
+                                                                : isFull
+                                                                    ? 'bg-gray-100 text-gray-400 border-transparent cursor-not-allowed'
+                                                                    : 'bg-white/40 border-wood/10 hover:border-wood/40 hover:bg-white/80 text-wood'}
+                                                        `}
+                                                    >
+                                                        <span className="text-sm font-serif">{slot.time}</span>
+                                                        <span className="text-xs mt-1">
+                                                            {slot.status === "circle" ? "◎" : slot.status === "triangle" ? "△" : "×"}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="flex justify-end gap-4 text-xs opacity-60 pt-2">
+                                            <span>◎ : Available</span>
+                                            <span>△ : Limited</span>
+                                            <span>× : Full</span>
+                                        </div>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="empty"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="py-8 text-center text-wood/40 text-sm italic"
+                                    >
+                                        Please select a date first.
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </div>
 
