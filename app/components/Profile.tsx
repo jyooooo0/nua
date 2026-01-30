@@ -25,6 +25,7 @@ export default function Profile() {
                 </motion.div>
 
                 {/* Text Content */}
+                {/* Text Content */}
                 <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     whileInView={{ opacity: 1, x: 0 }}
@@ -33,12 +34,12 @@ export default function Profile() {
                     className="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left"
                 >
                     <h3 className="text-xl font-serif italic text-wood-light mb-2 tracking-widest">Owner Stylist</h3>
-                    <h2 className="text-2xl md:text-3xl font-light mb-8 tracking-wider">
+                    <h2 className="text-2xl md:text-3xl font-light mb-4 tracking-wider">
                         Takahashi Aiko<br />
                         <span className="text-base md:text-lg opacity-60 mt-2 block font-serif">高橋 あいこ</span>
                     </h2>
 
-                    <div className="space-y-6 text-sm md:text-base leading-loose font-light opacity-80">
+                    <div className="space-y-4 text-sm md:text-base leading-loose font-light opacity-80 mb-6">
                         <p>
                             美容室での時間は、<br />
                             ただ髪を切るだけのものではありません。
@@ -48,9 +49,15 @@ export default function Profile() {
                             自分自身と向き合う静かなひととき。
                         </p>
                         <p>
-                            一人ひとりのお客様のライフスタイルに寄り添い、<br />
-                            その人らしさを引き出すスタイルをご提案いたします。
+                            肌に優しいオーガニック商材と、<br />
+                            マンツーマンの丁寧な施術で、<br />
+                            その人らしさを引き出します。
                         </p>
+                    </div>
+
+                    <div className="text-xs text-wood-light/60 tracking-widest border-t border-wood-light/20 pt-4 w-full md:w-auto">
+                        <p className="uppercase mb-1">My Favorites</p>
+                        <p>Art / Books / Cafe</p>
                     </div>
                 </motion.div>
 

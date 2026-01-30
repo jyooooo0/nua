@@ -20,7 +20,7 @@ import { ja } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Reservation = {
-    id: number;
+    id: string | number;
     date: string; // YYYY-MM-DD
     // ... other fields
 };

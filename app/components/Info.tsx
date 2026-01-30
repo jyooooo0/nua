@@ -37,7 +37,16 @@ export default function Info() {
                     <div className="space-y-1">
                         <p className="text-xs text-wood uppercase tracking-widest">Hours</p>
                         <p className="text-sm">9:00 - 18:00</p>
-                        <p className="text-xs text-foreground/60">定休日：月曜日</p>
+                        <p className="text-xs text-foreground/60">定休日：不定休</p>
+                    </div>
+
+                    {/* Parking & Others */}
+                    <div className="space-y-1">
+                        <p className="text-xs text-wood uppercase tracking-widest">Facility</p>
+                        <p className="text-xs text-foreground/80">
+                            駐車場 2台 / お子様連れOK<br />
+                            技術保証 1週間以内
+                        </p>
                     </div>
 
                     {/* Phone */}

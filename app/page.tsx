@@ -7,6 +7,7 @@ import Profile from "./components/Profile";
 import Reservation from "./components/Reservation";
 import Info from "./components/Info";
 import Footer from "./components/Footer";
+import FloatingReservationButton from "./components/FloatingReservationButton";
 
 export default function Home() {
   return (
@@ -20,6 +21,7 @@ export default function Home() {
       <div id="reservation"><Reservation /></div>
       <div id="info"><Info /></div>
       <Footer />
+      <FloatingReservationButton />
     </main>
   );
 }

@@ -38,16 +38,18 @@ export default function Concept() {
 
                     <div className="order-1 md:order-2 space-y-8 text-foreground">
                         <h2 className="text-2xl md:text-3xl font-light leading-relaxed tracking-widest">
-                            静かに、丁寧に、<br />
-                            髪と心を整える場所
+                            繭に包まれるように<br />
+                            心地よく、自然体で
                         </h2>
                         <p className="text-sm md:text-base leading-loose text-foreground/80 font-light">
-                            日々の中にある喧騒から少し離れて<br />
-                            自分自身と向き合うための時間。<br />
+                            店名の「nua」には、<br />
+                            繭に包まれるように心地よく、<br />
+                            自然体で過ごせる場所でありたい<br />
+                            という思いを込めています。<br />
                             <br />
-                            nuaは、髪を整えるだけでなく<br />
-                            心まで軽くなるような<br />
-                            そんな場所でありたいと願っています。
+                            皆さまにとって髪を整えるだけでなく、<br />
+                            日常がほんの少しやわらぐような<br />
+                            時間をお届けできれば幸いです。
                         </p>
                     </div>
                 </div>
