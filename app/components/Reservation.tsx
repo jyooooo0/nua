@@ -89,23 +89,31 @@ export default function Reservation() {
         const addonText = addonNames.length > 0 ? `[オプション: ${addonNames.join(", ")}]\n` : "";
 
         // Save to 'bookings' table (V2 Schema)
-        const { error } = await supabase
-            .from("bookings")
-            .insert([{
-                customer_name: name,
-                customer_email: email,
-                customer_phone: phone,
-                menu_id: menu.id,
-                menu_name: menu.name,
-                menu_price: menu.price,
-                date: selectedDate,
-                start_time: selectedTime,
-                end_time: endTime,
-                status: "pending",
-                staff_notes: `[新規: ${isNewCustomer ? "Yes" : "No"}]\n[スタイル: ${conversationStyle === "quiet" ? "静かに過ごしたい" : conversationStyle === "chat" ? "会話を楽しみたい" : "指定なし"}]\n${addonText}${notes}`
-            }]);
+        // Save to 'bookings' table via API (Handles Customer Matching)
+        try {
+            const response = await fetch('/api/bookings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    email,
+                    phone,
+                    menu_id: menu.id,
+                    menu_name: menu.name,
+                    menu_price: menu.price,
+                    date: selectedDate,
+                    start_time: selectedTime,
+                    end_time: endTime,
+                    staff_notes: `[新規: ${isNewCustomer ? "Yes" : "No"}]\n[スタイル: ${conversationStyle === "quiet" ? "静かに過ごしたい" : conversationStyle === "chat" ? "会話を楽しみたい" : "指定なし"}]\n${addonText}${notes}`
+                })
+            });
 
-        if (error) {
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || "予約処理に失敗しました");
+            }
+        } catch (error: any) {
             alert("予約エラー: " + error.message);
             setLoading(false);
             return;

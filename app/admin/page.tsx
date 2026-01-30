@@ -264,218 +264,205 @@ export default function AdminDashboard() {
 
     const statsDateDisplay = format(selectedDate, "M月d日(E)", { locale: ja });
 
+
+
     return (
-        <AuthGuard>
-            <div className="min-h-screen bg-[#ebe6df]">
-                <header className="bg-white border-b border-wood/10 px-6 py-4 flex items-center justify-between">
-                    <div>
-                        <h1 className="font-serif text-xl text-wood">nua 管理画面</h1>
-                        <p className="text-xs text-gray-400">Admin Dashboard (V2.0)</p>
-                    </div>
-                    <nav className="flex gap-4 text-sm">
-                        <Link href="/admin" className="text-wood hover:underline font-medium">ダッシュボード</Link>
-                        <Link href="/admin/customers" className="text-gray-500 hover:text-wood hover:underline">顧客管理</Link>
-                        <Link href="/admin/settings/menus" className="text-gray-500 hover:text-wood hover:underline">メニュー設定</Link>
-                    </nav>
-                </header>
+        <div>
+            {/* Calendar */}
+            <AdminCalendar
+                selectedDate={selectedDate}
+                reservations={filteredBookings.map(r => ({
+                    id: r.id,
+                    name: r.customer_name,
+                    menu: r.menu_name,
+                    date: r.date,
+                    time: r.start_time,
+                    source: "Web",
+                    status: r.status === 'confirmed' ? 'Confirmed' : 'Pending' // Simple mapping for calendar
+                }))}
+                onSelectDate={setSelectedDate}
+                viewMode={viewMode}
+                onChangeViewMode={setViewMode}
+            />
 
-                <main className="p-6 space-y-6 max-w-6xl mx-auto">
-                    {/* Calendar */}
-                    <AdminCalendar
-                        selectedDate={selectedDate}
-                        reservations={filteredBookings.map(r => ({
-                            id: r.id,
-                            name: r.customer_name,
-                            menu: r.menu_name,
-                            date: r.date,
-                            time: r.start_time,
-                            source: "Web",
-                            status: r.status === 'confirmed' ? 'Confirmed' : 'Pending' // Simple mapping for calendar
-                        }))}
-                        onSelectDate={setSelectedDate}
-                        viewMode={viewMode}
-                        onChangeViewMode={setViewMode}
-                    />
+            {/* Actions */}
+            <div className="flex flex-col md:flex-row justify-between items-end gap-4 mt-6">
+                <div>
+                    <h2 className="text-wood font-medium text-lg">{statsDateDisplay} の予約</h2>
+                    <p className="text-xs text-wood/60">{loading ? "Loading..." : `${filteredBookings.length} 件`}</p>
+                </div>
+                <button onClick={() => setShowManualModal(true)} className="bg-wood text-white px-6 py-3 rounded-sm shadow-sm hover:bg-wood/90 transition-colors flex items-center gap-2 text-sm">
+                    <span>+</span> 予約の手動追加
+                </button>
+            </div>
 
-                    {/* Actions */}
-                    <div className="flex flex-col md:flex-row justify-between items-end gap-4">
-                        <div>
-                            <h2 className="text-wood font-medium text-lg">{statsDateDisplay} の予約</h2>
-                            <p className="text-xs text-wood/60">{loading ? "Loading..." : `${filteredBookings.length} 件`}</p>
-                        </div>
-                        <button onClick={() => setShowManualModal(true)} className="bg-wood text-white px-6 py-3 rounded-sm shadow-sm hover:bg-wood/90 transition-colors flex items-center gap-2 text-sm">
-                            <span>+</span> 予約の手動追加
-                        </button>
-                    </div>
+            {/* List */}
+            <div className="bg-white rounded-sm shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    {filteredBookings.length === 0 ? (
+                        <div className="p-8 text-center text-gray-400 text-sm">予約はありません。</div>
+                    ) : (
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-[#f9f8f6] text-wood/60 uppercase text-xs">
+                                <tr>
+                                    <th className="px-6 py-3">ステータス</th>
+                                    <th className="px-6 py-3">時間</th>
+                                    <th className="px-6 py-3">氏名</th>
+                                    <th className="px-6 py-3">メニュー</th>
+                                    <th className="px-6 py-3">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-wood/10">
+                                {filteredBookings.map((res) => (
+                                    <tr key={res.id} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2 py-1 rounded-xs text-xs ${res.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                                                res.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                    res.status === 'resuggesting' ? 'bg-blue-100 text-blue-700' :
+                                                        'bg-yellow-100 text-yellow-700'
+                                                }`}>
+                                                {res.status === 'confirmed' ? '予約済み' :
+                                                    res.status === 'cancelled' ? 'キャンセル' :
+                                                        res.status === 'resuggesting' ? '再提案中' :
+                                                            res.status === 'pending' ? '仮予約' : res.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 font-bold text-wood">
+                                            {res.start_time.slice(0, 5)} - {res.end_time.slice(0, 5)}
+                                        </td>
+                                        <td className="px-6 py-4 font-medium">
+                                            {res.customer_id ? (
+                                                <Link href={`/admin/customers/${res.customer_id}`} className="text-wood hover:underline">
+                                                    {res.customer_name}
+                                                </Link>
+                                            ) : (
+                                                <span>{res.customer_name}</span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 text-gray-600">{res.menu_name}</td>
+                                        <td className="px-6 py-4">
+                                            {(res.status === "pending" || res.status === "resuggesting") && (
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => handleConfirmClick(res)} className="text-green-600 border border-green-200 px-3 py-1 rounded-sm hover:bg-green-50">承認</button>
+                                                    <button onClick={() => openRejectModal(res)} className="text-red-600 border border-red-200 px-3 py-1 rounded-sm hover:bg-red-50">拒否/提案</button>
+                                                </div>
+                                            )}
+                                            {res.status === "confirmed" && (
+                                                <button onClick={() => openRejectModal(res)} className="text-gray-500 border border-gray-200 px-3 py-1 rounded-sm hover:bg-gray-50">変更</button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            </div>
 
-                    {/* List */}
-                    <div className="bg-white rounded-sm shadow-sm overflow-hidden">
-                        <div className="overflow-x-auto">
-                            {filteredBookings.length === 0 ? (
-                                <div className="p-8 text-center text-gray-400 text-sm">予約はありません。</div>
-                            ) : (
-                                <table className="w-full text-sm text-left">
-                                    <thead className="bg-[#f9f8f6] text-wood/60 uppercase text-xs">
-                                        <tr>
-                                            <th className="px-6 py-3">ステータス</th>
-                                            <th className="px-6 py-3">時間</th>
-                                            <th className="px-6 py-3">氏名</th>
-                                            <th className="px-6 py-3">メニュー</th>
-                                            <th className="px-6 py-3">操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-wood/10">
-                                        {filteredBookings.map((res) => (
-                                            <tr key={res.id} className="hover:bg-gray-50">
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-2 py-1 rounded-xs text-xs ${res.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                                                        res.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                                                            res.status === 'resuggesting' ? 'bg-blue-100 text-blue-700' :
-                                                                'bg-yellow-100 text-yellow-700'
-                                                        }`}>
-                                                        {res.status === 'confirmed' ? '予約済み' :
-                                                            res.status === 'cancelled' ? 'キャンセル' :
-                                                                res.status === 'resuggesting' ? '再提案中' :
-                                                                    res.status === 'pending' ? '仮予約' : res.status}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 font-bold text-wood">
-                                                    {res.start_time.slice(0, 5)} - {res.end_time.slice(0, 5)}
-                                                </td>
-                                                <td className="px-6 py-4 font-medium">
-                                                    {res.customer_id ? (
-                                                        <Link href={`/admin/customers/${res.customer_id}`} className="text-wood hover:underline">
-                                                            {res.customer_name}
-                                                        </Link>
-                                                    ) : (
-                                                        <span>{res.customer_name}</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 text-gray-600">{res.menu_name}</td>
-                                                <td className="px-6 py-4">
-                                                    {(res.status === "pending" || res.status === "resuggesting") && (
-                                                        <div className="flex gap-2">
-                                                            <button onClick={() => handleConfirmClick(res)} className="text-green-600 border border-green-200 px-3 py-1 rounded-sm hover:bg-green-50">承認</button>
-                                                            <button onClick={() => openRejectModal(res)} className="text-red-600 border border-red-200 px-3 py-1 rounded-sm hover:bg-red-50">拒否/提案</button>
-                                                        </div>
-                                                    )}
-                                                    {res.status === "confirmed" && (
-                                                        <button onClick={() => openRejectModal(res)} className="text-gray-500 border border-gray-200 px-3 py-1 rounded-sm hover:bg-gray-50">変更</button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-                    </div>
-                </main>
 
-                {/* Manual Modal */}
-                <AnimatePresence>
-                    {showManualModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                            <motion.div className="bg-white w-full max-w-md rounded-sm shadow-lg overflow-hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                <div className="px-6 py-4 border-b flex justify-between items-center">
-                                    <h3 className="text-lg text-wood">予約追加</h3>
-                                    <button onClick={() => setShowManualModal(false)}>×</button>
+            {/* Manual Modal */}
+            <AnimatePresence>
+                {showManualModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                        <motion.div className="bg-white w-full max-w-md rounded-sm shadow-lg overflow-hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                            <div className="px-6 py-4 border-b flex justify-between items-center">
+                                <h3 className="text-lg text-wood">予約追加</h3>
+                                <button onClick={() => setShowManualModal(false)}>×</button>
+                            </div>
+                            <form onSubmit={handleManualAdd} className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-xs text-gray-500 mb-1">顧客</label>
+                                    <CustomerAutocomplete onSelect={setSelectedCustomer} placeholder="名前検索..." />
+                                    {selectedCustomer && <p className="text-xs text-green-600 mt-1">✓ {selectedCustomer?.name}</p>}
                                 </div>
-                                <form onSubmit={handleManualAdd} className="p-6 space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs text-gray-500 mb-1">顧客</label>
-                                        <CustomerAutocomplete onSelect={setSelectedCustomer} placeholder="名前検索..." />
-                                        {selectedCustomer && <p className="text-xs text-green-600 mt-1">✓ {selectedCustomer.name}</p>}
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs text-gray-500 mb-1">日付</label>
-                                            <input type="date" name="date" required className="w-full border p-2 rounded-sm" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs text-gray-500 mb-1">時間</label>
-                                            <select name="time" required className="w-full border p-2 rounded-sm">
-                                                <option value="">選択</option>
-                                                {ALL_SLOTS.map(s => <option key={s} value={s}>{s}</option>)}
-                                            </select>
-                                        </div>
+                                        <label className="block text-xs text-gray-500 mb-1">日付</label>
+                                        <input type="date" name="date" required className="w-full border p-2 rounded-sm" />
                                     </div>
                                     <div>
-                                        <label className="block text-xs text-gray-500 mb-1">メニュー</label>
-                                        <select name="menu" required className="w-full border p-2 rounded-sm">
-                                            {menus.map(m => (
-                                                <option key={m.id} value={m.id}>{m.name} ({m.duration}分 - ¥{m.price})</option>
-                                            ))}
+                                        <label className="block text-xs text-gray-500 mb-1">時間</label>
+                                        <select name="time" required className="w-full border p-2 rounded-sm">
+                                            <option value="">選択</option>
+                                            {ALL_SLOTS.map(s => <option key={s} value={s}>{s}</option>)}
                                         </select>
                                     </div>
-                                    <button type="submit" className="w-full bg-wood text-white py-2 rounded-sm">追加</button>
-                                </form>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
-
-                {/* Reject Modal */}
-                <AnimatePresence>
-                    {showRejectModal && rejectingBooking && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                            <motion.div className="bg-white w-full max-w-md rounded-sm shadow-lg overflow-hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                <div className="px-6 py-4 border-b bg-red-50 flex justify-between items-center">
-                                    <h3 className="text-lg text-red-700">お断り・別日提案</h3>
-                                    <button onClick={() => setShowRejectModal(false)}>×</button>
                                 </div>
-                                <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-                                    <div className="bg-gray-50 p-4 rounded-sm">
-                                        <p className="font-medium">{rejectingBooking.customer_name}</p>
-                                        <p className="text-sm text-gray-600">{rejectingBooking.date} {rejectingBooking.start_time} - {rejectingBooking.menu_name}</p>
-                                    </div>
-                                    <div className="space-y-3">
-                                        <p className="text-xs text-gray-500">別日提案 (3つまで)</p>
-                                        {[0, 1, 2].map((idx) => (
-                                            <div key={idx} className="bg-gray-50 p-2 rounded-sm border">
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <input type="date"
-                                                        value={alternativeDates[idx].date}
-                                                        onChange={e => handleAlternativeDateChange(idx, e.target.value)}
-                                                        className="border p-1 text-sm"
-                                                    />
-                                                    <select
-                                                        value={alternativeDates[idx].time}
-                                                        onChange={e => handleAlternativeTimeChange(idx, e.target.value)}
-                                                        className="border p-1 text-sm"
-                                                        disabled={!alternativeDates[idx].date}
-                                                    >
-                                                        <option value="">時間</option>
-                                                        {availableSlotsMap[idx]?.map(s => <option key={s} value={s}>{s}</option>)}
-                                                    </select>
-                                                </div>
-                                            </div>
+                                <div>
+                                    <label className="block text-xs text-gray-500 mb-1">メニュー</label>
+                                    <select name="menu" required className="w-full border p-2 rounded-sm">
+                                        {menus.map(m => (
+                                            <option key={m.id} value={m.id}>{m.name} ({m.duration}分 - ¥{m.price})</option>
                                         ))}
-                                    </div>
-                                    <div className="flex gap-2 pt-2">
-                                        <button onClick={() => setShowRejectModal(false)} className="flex-1 border py-2 text-gray-600">戻る</button>
-                                        <button onClick={handleRejectWithAlternative} className="flex-1 bg-red-600 text-white py-2">次へ (メール作成)</button>
-                                    </div>
+                                    </select>
                                 </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
+                                <button type="submit" className="w-full bg-wood text-white py-2 rounded-sm">追加</button>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
-                {/* Email Preview Modal */}
-                {/* Always rendered but controlled by internal state, 
-                    OR conditionally rendered. Conditional is better for init logic in useEffect of child */}
-                {showEmailModal && processingBooking && (
+            {/* Reject Modal */}
+            <AnimatePresence>
+                {showRejectModal && rejectingBooking && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                        <motion.div className="bg-white w-full max-w-md rounded-sm shadow-lg overflow-hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                            <div className="px-6 py-4 border-b bg-red-50 flex justify-between items-center">
+                                <h3 className="text-lg text-red-700">お断り・別日提案</h3>
+                                <button onClick={() => setShowRejectModal(false)}>×</button>
+                            </div>
+                            <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+                                <div className="bg-gray-50 p-4 rounded-sm">
+                                    <p className="font-medium">{rejectingBooking?.customer_name}</p>
+                                    <p className="text-sm text-gray-600">{rejectingBooking?.date} {rejectingBooking?.start_time} - {rejectingBooking?.menu_name}</p>
+                                </div>
+                                <div className="space-y-3">
+                                    <p className="text-xs text-gray-500">別日提案 (3つまで)</p>
+                                    {[0, 1, 2].map((idx) => (
+                                        <div key={idx} className="bg-gray-50 p-2 rounded-sm border">
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <input type="date"
+                                                    value={alternativeDates[idx].date}
+                                                    onChange={e => handleAlternativeDateChange(idx, e.target.value)}
+                                                    className="border p-1 text-sm"
+                                                />
+                                                <select
+                                                    value={alternativeDates[idx].time}
+                                                    onChange={e => handleAlternativeTimeChange(idx, e.target.value)}
+                                                    className="border p-1 text-sm"
+                                                    disabled={!alternativeDates[idx].date}
+                                                >
+                                                    <option value="">時間</option>
+                                                    {availableSlotsMap[idx]?.map(s => <option key={s} value={s}>{s}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex gap-2 pt-2">
+                                    <button onClick={() => setShowRejectModal(false)} className="flex-1 border py-2 text-gray-600">戻る</button>
+                                    <button onClick={handleRejectWithAlternative} className="flex-1 bg-red-600 text-white py-2">次へ (メール作成)</button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Email Preview Modal */}
+            {
+                showEmailModal && processingBooking && (
                     <EmailPreviewModal
                         isOpen={showEmailModal}
                         onClose={() => setShowEmailModal(false)}
                         onConfirm={handleEmailConfirmed}
-                        booking={processingBooking}
+                        booking={processingBooking!}
                         type={emailType}
                         alternativeDates={alternativeDates.filter(d => d.date && d.time)}
                     />
-                )}
-            </div>
-        </AuthGuard>
+                )
+            }
+        </div >
     );
 }

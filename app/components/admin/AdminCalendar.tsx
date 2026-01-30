@@ -14,7 +14,9 @@ import {
     subMonths,
     addWeeks,
     subWeeks,
-    isToday
+    isToday,
+    addDays,
+    subDays
 } from "date-fns";
 import { ja } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -51,9 +53,7 @@ export default function AdminCalendar({
         } else if (viewMode === 'week') {
             onSelectDate(addWeeks(selectedDate, 1));
         } else {
-            onSelectDate(addWeeks(selectedDate, 1)); // For day view, maybe jump? Let's stick to simple logic
-            // Actually for Day view, maybe next/prev day?
-            // But usually navigation is for the context (Month/Week)
+            onSelectDate(addDays(selectedDate, 1));
         }
     };
 
@@ -62,6 +62,8 @@ export default function AdminCalendar({
             setCurrentMonth(subMonths(currentMonth, 1));
         } else if (viewMode === 'week') {
             onSelectDate(subWeeks(selectedDate, 1));
+        } else {
+            onSelectDate(subDays(selectedDate, 1));
         }
     };
 
@@ -153,7 +155,7 @@ export default function AdminCalendar({
                                 className={`
                                     relative h-10 md:h-14 flex flex-col items-center justify-center text-sm rounded-sm transition-colors
                                     ${!isCurrentMonth ? 'text-gray-300' : 'text-wood'}
-                                    ${isSelected ? 'bg-wood text-white shadow-md' : 'hover:bg-[#f2efe9]'}
+                                    ${isSelected ? 'bg-gray-800 text-white shadow-md' : 'hover:bg-[#f2efe9]'}
                                     ${isTodayDate && !isSelected ? 'font-bold text-wood border border-wood/30' : ''}
                                 `}
                             >
@@ -183,7 +185,7 @@ export default function AdminCalendar({
                                 onClick={() => onSelectDate(day)}
                                 className={`
                                     relative h-20 flex flex-col items-center justify-center text-sm rounded-sm transition-colors border border-transparent
-                                    ${isSelected ? 'bg-wood text-white shadow-md' : 'bg-[#f9f8f6] hover:bg-[#f2efe9]'}
+                                    ${isSelected ? 'bg-gray-800 text-white shadow-md' : 'bg-[#f9f8f6] hover:bg-[#f2efe9]'}
                                     ${isTodayDate && !isSelected ? 'border-wood/30' : ''}
                                 `}
                             >
